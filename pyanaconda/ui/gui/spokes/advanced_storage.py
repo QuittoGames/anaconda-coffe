@@ -35,7 +35,7 @@ from pyanaconda.modules.common.structures.storage import DeviceData
 from pyanaconda.ui.categories.system import SystemCategory
 from pyanaconda.ui.gui.spokes import NormalSpoke
 from pyanaconda.ui.gui.spokes.advstorage.dasd import DASDDialog
-from pyanaconda.ui.gui.spokes.advstorage.fcoe import FCoEDialog
+from pyanaconda.ui.gui.spokes.advstorage.fcoe import FCoEDialoga
 from pyanaconda.ui.gui.spokes.advstorage.iscsi import ISCSIDialog
 from pyanaconda.ui.gui.spokes.advstorage.zfcp import ZFCPDialog
 from pyanaconda.ui.gui.spokes.lib.cart import SelectedDisksDialog
