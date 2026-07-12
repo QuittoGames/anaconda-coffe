@@ -58,3 +58,6 @@ def get_stdout_logger():
 
 def get_program_logger():
     return logging.getLogger(constants.LOGGER_PROGRAM)
+
+def get_brew_coffe_linux_logger():
+    return logging.getLogger(constants.LOGGER_BREW_COFFE_LINUX)

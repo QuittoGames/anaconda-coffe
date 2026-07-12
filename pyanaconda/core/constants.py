@@ -333,7 +333,7 @@ LOGGER_MAIN = "anaconda.main"
 LOGGER_STDOUT = "anaconda.stdout"
 LOGGER_PROGRAM = "program"
 LOGGER_SIMPLELINE = "simpleline"
-
+LOGGER_BREW_COFFE_LINUX = "anacondra.brew-coffe-linux"
 # Timeout for starting the Wayland compositor
 WAYLAND_TIMEOUT = 120
 
