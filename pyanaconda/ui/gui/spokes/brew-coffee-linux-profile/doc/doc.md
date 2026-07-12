@@ -4,28 +4,35 @@ The Brew Coffee Linux installer extends Anaconda with a set of custom installati
 
 Instead of directly installing packages or modifying the operating system, every page contributes data to a single `profile.json`.
 
-At the end of the installation process, this profile becomes the input of the Coffee SDK.
+At the end of the installation process, this profile is consumed by the Coffee SDK — not as a standalone program, but as a Python library imported directly by Anaconda.
 
 ```
-Spokes
-
-      │
-
-      ▼
-
+LiveOS
+  │
+  ▼
+anaconda-coffe
+  │
+  ├── importa coffee_sdk
+  │
+  ▼
+ProfileSpoke
+  │
+  ▼
 profile.json
-
-      │
-
-      ▼
-
-Coffee SDK
-
-      │
-
-      ▼
-
-Configured Developer Workstation
+  │
+  ▼
+coffee_sdk
+  │
+  ├── resolve pacotes
+  ├── valida perfil
+  ├── aplica regras
+  └── gera configuração
+  │
+  ▼
+Anaconda Payload
+  │
+  ▼
+Instalação
 ```
 
 This approach keeps the installer simple while allowing the SDK to become the single source of truth for environment customization.
@@ -272,9 +279,106 @@ Displayed information:
 After confirmation:
 
 1. The installer generates `/etc/brew-coffe/profile.json`.
-2. Fedora installation continues normally.
-3. The Coffee SDK is executed after the operating system installation.
-4. The SDK interprets the generated profile.
-5. The developer environment is automatically built.
+2. Anaconda imports `coffee_sdk` e chama `resolve(profile)`.
+3. O SDK resolve pacotes, valida o perfil e gera a configuração.
+4. O resultado é passado para o Anaconda Payload.
+5. A instalação prossegue com os pacotes resolvidos.
 
 The Summary page is the final validation point before the installation starts.
+
+---
+
+## Architecture: Coffee SDK como biblioteca Python
+
+O Coffee SDK não é um programa separado executado após a instalação. Ele é uma biblioteca Python importada diretamente pelo Anaconda durante a instalação.
+
+**Estrutura do projeto:**
+
+```
+coffee-sdk/
+├── pyproject.toml
+├── src/
+│
+└── coffee_sdk/
+    ├── __init__.py
+    ├── profile.py
+    ├── packages.py
+    ├── desktop.py
+    └── virtualization.py
+```
+
+**Exemplo de uso dentro do Anaconda:**
+
+```python
+from coffee_sdk.packages import resolve
+from coffee_sdk.profile import load_profile
+
+profile = load_profile("/tmp/profile.json")
+packages = resolve(profile)
+payload.install(packages)
+```
+
+**Tipos de pacote e definições:**
+
+```python
+# coffee_sdk/packages.py
+
+DESKTOP_PACKAGES = {
+    "gnome": ["gnome-shell", "gnome-terminal"],
+    "kde": ["plasma-desktop"],
+}
+
+
+def resolve(profile):
+    packages = []
+    packages += DESKTOP_PACKAGES[profile.desktop]
+    packages += profile.packages
+    return packages
+```
+
+```python
+# coffee_sdk/profile.py
+
+from dataclasses import dataclass
+
+
+@dataclass
+class Profile:
+    desktop: str
+    shell: str
+    packages: list[str]
+```
+
+### Como empacotar no LiveOS
+
+Há três formas de disponibilizar o SDK dentro do ambiente de instalação:
+
+1. **RPM (recomendado)** — Criar um `python3-coffee-sdk.rpm` que instala em `/usr/lib/python3.*/site-packages/coffee_sdk/`. O Anaconda simplesmente faz `import coffee_sdk`. Essa é a abordagem mais Fedora-like.
+
+2. **Embutido no Anaconda** — Colocar `coffee_sdk/` dentro de `anaconda-coffe/pyanaconda/`. Funciona, mas fica mais acoplado.
+
+3. **Via pip** — Evitar em uma distro. Durante a instalação não se quer depender de internet ou PyPI.
+
+**Arquitetura final de pacotes RPM:**
+
+```
+Fedora Base
+    |
+    +-- Kernel RPM
+    |
+    +-- Anaconda Coffe RPM
+    |
+    +-- python3-coffee-sdk RPM
+    |
+    +-- brew-release RPM
+    |
+    +-- GNOME RPMs
+```
+
+O Anaconda vira apenas o orquestrador da instalação, e o coffee-sdk vira o cérebro das decisões da distro. Isso também permite no futuro criar um instalador CLI:
+
+```bash
+coffee-install --profile developer.json
+```
+
+usando a mesma lógica sem depender do GTK do Anaconda.

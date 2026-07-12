@@ -10,10 +10,15 @@ gi.require_version("Gtk", "3.0")
 
 log = get_module_logger(__name__)
 
-class WorkBrewCoffeSpoken(NormalSpoke):
+class DesktopBrewCoffeSpoken(NormalSpoke):
+
+    builderObjects = ["desktopBrewCoffeWindow"]
+    mainWidgetName = "desktopBrewCoffeWindow"
 
     category = TheBrewOfCoffeCategory
-    title = "Brew Coffe Linux | Profile"
+    title = "Brew Coffe Linux | Desktop"
+
+    uiFile = "glade/desktop.glade"
 
     def __init__(self, data, storage, payload):
         super().__init__(data, storage, payload)
